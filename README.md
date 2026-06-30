@@ -59,6 +59,49 @@ A REST API layer and single-page dark-themed frontend that exposes the peer engi
 
 ---
 
+## 🚀 Getting Started
+
+### Installation
+
+```bash
+git clone https://github.com/<your-username>/aegis-p2p-file-sharing.git
+cd aegis-p2p-file-sharing
+pip install -r requirements.txt
+```
+
+### Running a Peer
+
+```bash
+python app.py --name PeerA
+```
+
+This launches the peer, opens the web UI in your default browser, and starts broadcasting on the LAN. To run a second peer on the same machine for local testing, open another terminal and give it a distinct name and ports:
+
+```bash
+python app.py --name PeerB --tcp 6002 --flask 5002
+```
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `--name` | Peer identifier shown to other nodes | system hostname |
+| `--tcp` | TCP port for the file-transfer server | auto-assigned free port |
+| `--flask` | Port for the local web UI | auto-assigned free port |
+
+Once two or more peers are running on the same LAN (or the same machine), they'll discover each other automatically — no manual IP configuration required.
+
+### Configuration
+
+Aegis derives its AES-256 key and HMAC signing key from a shared secret. **Set this before running any peers**, otherwise all peers fall back to a publicly known development value and the encryption/authentication provides no real protection:
+
+```bash
+export P2P_NETWORK_SECRET="your-own-secret-passphrase"   # macOS/Linux
+set P2P_NETWORK_SECRET=your-own-secret-passphrase         # Windows (cmd)
+```
+
+Every peer that should be able to talk to each other must be started with the **same** secret.
+
+---
+
 ## 🔍 Core Concepts Demonstrated
 
 ### 🔐 Authenticated Encryption
