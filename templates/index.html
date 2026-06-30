@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2P Share</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+:root {
+  --bg:        #0a0d14;
+  --surface:   #0f1320;
+  --surface2:  #141826;
+  --surface3:  #1a202f;
+  --border:    #1e2740;
+  --border2:   #243050;
+  --blue:      #4f8ef7;
+  --blue-dim:  rgba(79,142,247,0.12);
+  --blue-glow: rgba(79,142,247,0.30);
+  --green:     #2dd98f;
+  --green-dim: rgba(45,217,143,0.12);
+  --red:       #f75f5f;
+  --red-dim:   rgba(247,95,95,0.12);
+  --yellow:    #f7c948;
+  --text:      #d0daf0;
+  --text-2:    #7a8eb8;
+  --text-3:    #3a4868;
+  --mono:      'JetBrains Mono', monospace;
+  --sans:      'Inter', sans-serif;
+  --radius:    6px;
+}
+
+/* ── RESET ─────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+/* ── HEADER ────────────────────────────────────────────────────────────────── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  height: 58px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border2);
+  position: sticky; top: 0; z-index: 100;
+}
+.logo {
+  display: flex; align-items: center; gap: 12px;
+}
+.logo-icon {
+  width: 37px; height: 37px; border-radius: 8px;
+  background: var(--blue);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  color: #fff;
+}
+.logo-text {
+  font-size: 17px; font-weight: 700; letter-spacing: 0.5px; color: var(--text);
+}
+.logo-sub {
+  font-size: 11px; color: var(--text-2); margin-top: 1px;
+}
+
+.peer-chip {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 6px 14px 6px 10px;
+}
+.peer-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink {
+  0%,100% { opacity: 1; } 50% { opacity: 0.3; }
+}
+.peer-chip-name {
+  font-family: var(--mono); font-size: 13px; font-weight: 700;
+  color: var(--green); letter-spacing: 0.5px;
+}
+.peer-chip-addr {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--text-2);
+}
+
+/* ── LAYOUT ────────────────────────────────────────────────────────────────── */
+main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto;
+  gap: 18px;
+  padding: 22px 28px 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ── CARD ──────────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  animation: fade-up 0.4s ease both;
+}
+.card:nth-child(1) { animation-delay: 0.05s; }
+.card:nth-child(2) { animation-delay: 0.10s; }
+.card:nth-child(3) { animation-delay: 0.15s; }
+.card:nth-child(4) { animation-delay: 0.20s; }
+.card:nth-child(5) { animation-delay: 0.25s; }
+.full { grid-column: 1 / -1; }
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 18px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+.card-title {
+  font-size: 11px; font-weight: 600; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--text-2);
+}
+.card-body { padding: 16px 18px; }
+
+/* ── BADGE ─────────────────────────────────────────────────────────────────── */
+.badge {
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  padding: 3px 10px; border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+.badge-blue   { background: var(--blue-dim);  color: var(--blue);  border: 1px solid rgba(79,142,247,0.25); }
+.badge-green  { background: var(--green-dim); color: var(--green); border: 1px solid rgba(45,217,143,0.25); }
+.badge-red    { background: var(--red-dim);   color: var(--red);   border: 1px solid rgba(247,95,95,0.25); }
+.badge-yellow { background: rgba(247,201,72,0.12); color: var(--yellow); border: 1px solid rgba(247,201,72,0.25); }
+.badge-grey   { background: var(--surface3);  color: var(--text-2); border: 1px solid var(--border2); }
+
+/* ── BUTTONS ───────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 14px;
+  font-family: var(--sans); font-size: 12px; font-weight: 600;
+  border: none; border-radius: 5px; cursor: pointer;
+  transition: all 0.15s; white-space: nowrap;
+}
+.btn-primary  { background: var(--blue);  color: #fff; }
+.btn-primary:hover  { background: #6ba0ff; box-shadow: 0 0 12px var(--blue-glow); }
+.btn-success  { background: var(--green); color: #0a0d14; }
+.btn-success:hover  { filter: brightness(1.1); }
+.btn-outline  { background: transparent; color: var(--blue); border: 1px solid var(--border2); }
+.btn-outline:hover  { border-color: var(--blue); background: var(--blue-dim); }
+.btn-ghost    { background: transparent; color: var(--text-2); border: 1px solid var(--border); }
+.btn-ghost:hover    { border-color: var(--border2); color: var(--text); }
+.btn-danger   { background: transparent; color: var(--red); border: 1px solid rgba(247,95,95,0.3); }
+.btn-danger:hover   { background: var(--red-dim); }
+.btn-sm { padding: 5px 10px; font-size: 11px; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── INPUTS ────────────────────────────────────────────────────────────────── */
+input[type="text"], input[type="number"] {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-family: var(--mono); font-size: 12px;
+  padding: 8px 12px; border-radius: 5px; outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+input:focus { border-color: var(--blue); }
+input::placeholder { color: var(--text-3); }
+.input-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.input-row input { flex: 1; }
+
+/* ── TABS ──────────────────────────────────────────────────────────────────── */
+.tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+.tab {
+  padding: 8px 14px;
+  font-size: 12px; font-weight: 500;
+  color: var(--text-2); cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+.tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+.tab:hover:not(.active) { color: var(--text); }
+
+/* ── PEER CARDS ────────────────────────────────────────────────────────────── */
+.peer-grid { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 8px; 
+  max-height: 280px;  
+  overflow-y: auto;   
+  padding-right: 4px; 
+}
+.peer-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  transition: border-color 0.15s;
+}
+.peer-item:hover { border-color: var(--border2); }
+.peer-item.selected { border-color: var(--blue); background: var(--blue-dim); }
+.peer-item-left { display: flex; align-items: center; gap: 10px; }
+.peer-status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--text-3); flex-shrink: 0;
+  transition: background 0.3s;
+}
+.peer-status-dot.online  { background: var(--green); box-shadow: 0 0 5px var(--green); }
+.peer-status-dot.offline { background: var(--text-3); }
+.peer-item-name {
+  font-weight: 600; font-size: 13px; color: var(--text);
+}
+.peer-item-addr {
+  font-family: var(--mono); font-size: 10px; color: var(--text-2);
+  margin-top: 1px;
+}
+.peer-item-btns { display: flex; gap: 6px; }
+
+/* ── FILE BROWSER ──────────────────────────────── */
+.browser-wrap {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  min-height: 200px;
+}
+.browser-top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+.browser-label { font-size: 12px; color: var(--text-2); }
+.browser-label span { color: var(--blue); font-weight: 600; }
+.browser-body { padding: 10px; }
+
+/* ── FILE LIST ITEMS ───────────────────────────────────────────────────────── */
+.file-list { display: flex; flex-direction: column; gap: 6px; }
+.file-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+.file-item-left { min-width: 0; flex: 1; }
+.file-name { font-family: var(--mono); font-size: 12px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-size { font-size: 10px; color: var(--text-2); margin-top: 2px; }
+.file-tag  { font-family: var(--mono); font-size: 9px; letter-spacing: 0.5px; flex-shrink: 0; margin-left: 10px; }
+
+/* ── SCROLLABLE ────────────────────────────────────────────────────────────── */
+.scroll { max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+
+/* ── EMPTY STATE ───────────────────────────────────────────────────────────── */
+.empty {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 6px;
+  padding: 34px 18px; text-align: center;
+  color: var(--text-3); font-size: 12px;
+}
+.empty-icon { font-size: 22px; opacity: 0.5; }
+
+/* ── UPLOAD DROP ZONE ──────────────────────────────────────────────────────── */
+.drop-zone {
+  position: relative;
+  border: 2px dashed var(--border2);
+  border-radius: 8px;
+  padding: 32px 20px; text-align: center; cursor: pointer;
+  transition: all 0.2s;
+}
+.drop-zone:hover, .drop-zone.drag {
+  border-color: var(--blue); background: var(--blue-dim);
+}
+.drop-zone input[type="file"] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.drop-icon { font-size: 26px; margin-bottom: 8px; }
+.drop-title { font-weight: 600; font-size: 14px; color: var(--text); margin-bottom: 4px; }
+.drop-hint  { font-size: 12px; color: var(--text-2); }
+#upload-status { font-family: var(--mono); font-size: 11px; margin-top: 10px; min-height: 16px; }
+
+/* ── PEERS-PANEL LAYOUT ────────────────────────────────────────────────────── */
+.peers-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 16px;
+}
+.peers-col-title {
+  font-size: 11px; font-weight: 500; color: var(--text-3);
+  letter-spacing: 1px; text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+/* ── TRANSFER LOG ──────────────────────────────────────────────────────────── */
+.log-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11px; }
+.log-table th {
+  text-align: left; padding: 6px 10px;
+  color: var(--text-3); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.8px; text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.log-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.log-table tr:last-child td { border-bottom: none; }
+.log-table tr:hover td { background: var(--surface2); }
+.log-type-cell { font-weight: 700; letter-spacing: 0.5px; }
+.log-verify { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; }
+.log-verify.ok  { color: var(--green); }
+.log-verify.fail { color: var(--red); }
+.log-scroll { max-height: 220px; overflow-y: auto; }
+
+/* ── DIVIDER ───────────────────────────────────────────────────────────────── */
+.sep { height: 1px; background: var(--border); margin: 14px 0; }
+
+/* ── SPINNER ───────────────────────────────────────────────────────────────── */
+.spin {
+  display: inline-block; width: 13px; height: 13px;
+  border: 2px solid var(--border2); border-top-color: var(--blue);
+  border-radius: 50%; animation: rotate 0.7s linear infinite;
+  vertical-align: middle;
+}
+@keyframes rotate { to { transform: rotate(360deg); } }
+
+/* ── TOAST NOTIFICATIONS ───────────────────────────────────────────────────── */
+#toasts {
+  position: fixed; bottom: 20px; right: 20px;
+  display: flex; flex-direction: column; gap: 8px; z-index: 9999;
+}
+.toast {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  max-width: 360px; min-width: 220px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  animation: toast-in 0.25s ease;
+  font-size: 12px;
+}
+.toast-icon { font-size: 16px; flex-shrink: 0; }
+.toast-body { flex: 1; }
+.toast-title { font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.toast-msg   { color: var(--text-2); line-height: 1.4; }
+.toast.success { border-left: 3px solid var(--green); }
+.toast.error   { border-left: 3px solid var(--red);   }
+.toast.info    { border-left: 3px solid var(--blue);  }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── SCROLLBAR ─────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--blue); }
+
+/* ── PROGRESS BARS & SEARCH ────────────────────────────────────────────────── */
+.progress-wrap { width: 100%; height: 6px; background: var(--surface3); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+.progress-fill { height: 100%; background: var(--blue); width: 0%; transition: width 0.2s linear; }
+.speed-text { font-size: 10px; color: var(--text-2); margin-top: 5px; display: flex; justify-content: space-between; font-family: var(--mono); }
+
+.search-box {
+  display: flex; gap: 8px; margin-bottom: 12px;
+}
+.search-box input { flex: 1; }
+
+/* ── RESPONSIVE ────────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  main { grid-template-columns: 1fr; }
+  .full { grid-column: 1; }
+  .peers-layout { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ─── HEADER ───────────────────────────────────────────────────────────── -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">Aegis</div>
+    <div>
+      <div class="logo-text">Aegis - Secure P2P File Sharing System</div>
+      <div class="logo-sub">Muhammad Daniyal Alam · Hassan Arif</div>
+    </div>
+  </div>
+  <div class="peer-chip">
+    <div class="peer-dot"></div>
+    <div>
+      <div class="peer-chip-name" id="hdr-name">—</div>
+      <div class="peer-chip-addr" id="hdr-addr">—</div>
+    </div>
+  </div>
+</header>
+
+<!-- ─── MAIN ─────────────────────────────────────────────────────────────── -->
+<main>
+
+  <!-- ── CARD 1: Peer Network (full width) ─────────────────────────────── -->
+  <div class="card full">
+    <div class="card-header">
+      <span class="card-title">Peer Network</span>
+      <span class="badge badge-blue" id="peer-count">0 Peers</span>
+    </div>
+    <div class="card-body">
+      <div class="peers-layout">
+
+        <!-- Left: peer list -->
+        <div>
+          <div class="peers-col-title">Available Peers</div>
+          <div class="peer-grid" id="peer-list">
+            <div class="empty" style="padding:20px 0">
+              <div class="empty-icon">⊘</div>
+              <div>No other peers configured</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: file browser -->
+        <div>
+          <div class="peers-col-title">Network Search & Browser</div>
+          <div class="search-box">
+            <input type="text" id="search-input" placeholder="Search network for files..." onkeydown="if(event.key==='Enter') searchNetwork()">
+            <button class="btn btn-primary" onclick="searchNetwork()">Search</button>
+          </div>
+          
+          <div class="browser-wrap">
+            <div class="browser-top">
+              <div class="browser-label">Viewing: <span id="browser-peer">—</span></div>
+              <button class="btn btn-ghost btn-sm" id="refresh-btn" style="display:none" onclick="refreshBrowser()">↻</button>
+            </div>
+            <div class="browser-body" id="browser-content">
+              <div class="empty">
+                <div class="empty-icon">📂</div>
+                <div>Search the network or browse a specific peer.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CARD 2: My Files ──────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">My Files</span>
+      <span class="badge badge-grey" id="myfiles-count">0 Files</span>
+    </div>
+    <div class="card-body">
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('shared', this)">Shared Files</div>
+        <div class="tab"       onclick="switchTab('received', this)">Received Files</div>
+      </div>
+      <div id="tab-shared"></div>
+      <div id="tab-received" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- ── CARD 3: Upload ────────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Share a File</span>
+    </div>
+    <div class="card-body">
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" id="file-input" onchange="handleUpload(this)">
+        <div class="drop-icon">⬆️</div>
+        <div class="drop-title">Drop file here or click to browse</div>
+        <div class="drop-hint">File will be added to your shared_files folder</div>
+      </div>
+      <div id="upload-status"></div>
+    </div>
+  </div>
+
+  <!-- ── CARD 4: Transfer Log (full width) ─────────────────────────────── -->
+  <div class="card full">
+    <div class="card-header">
+      <span class="card-title">Transfer Log</span>
+      <button class="btn btn-ghost btn-sm" onclick="loadLog()">↻ Refresh</button>
+    </div>
+    <div class="card-body">
+      <div class="log-scroll">
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>File</th>
+              <th>Peer</th>
+              <th>Size</th>
+              <th>SHA-256</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="log-body">
+            <tr><td colspan="6"><div class="empty">No transfers yet.</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ─── TOASTS ────────────────────────────────────────────────────────────── -->
+<div id="toasts"></div>
+
+<!-- ─── SCRIPT ───────────────────────────────────────────────────────────── -->
+<script>
+'use strict';
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let selectedPeer = null;    
+
+// ── Bootstrap ────────────────────────────────────────────────────────────────
+(async function init() {
+  await loadInfo();
+  await loadPeers();
+  await loadMyFiles();
+  await loadLog();
+  pingAllPeers();
+
+  setInterval(() => fetch('/api/heartbeat').catch(() => {}), 2000);
+
+  setInterval(async () => {
+    await loadPeers();
+    pingAllPeers();
+  }, 5000);
+  
+  setInterval(loadLog, 10000);
+})();
+
+// ── Node info ─────────────────────────────────────────────────────────────────
+async function loadInfo() {
+  const d = await api('/api/info');
+  document.getElementById('hdr-name').textContent = d.name;
+  document.getElementById('hdr-addr').textContent =
+    `127.0.0.1:${d.flask_port}  ·  TCP :${d.tcp_port}`;
+  document.title = `P2P Share — ${d.name}`;
+}
+
+// ── Peers ─────────────────────────────────────────────────────────────────────
+async function loadPeers() {
+  const peers = await api('/api/peers');
+  const list  = document.getElementById('peer-list');
+  const count = document.getElementById('peer-count');
+
+  count.textContent = `${peers.length} Peer${peers.length !== 1 ? 's' : ''}`;
+
+  if (!peers.length) {
+    list.innerHTML = `<div class="empty" style="padding:20px 0">
+      <div class="empty-icon">📡</div>
+      <div>Scanning LAN for active peers...</div>
+    </div>`;
+    return;
+  }
+
+  if (list.querySelector('.empty')) {
+    list.innerHTML = '';
+  }
+
+  const currentNames = peers.map(p => p.name);
+
+  Array.from(list.children).forEach(child => {
+    const peerName = child.id.replace('pcard-', '');
+    if (!currentNames.includes(peerName)) {
+      child.remove();
+    }
+  });
+
+  peers.forEach(p => {
+    if (!document.getElementById(`pcard-${p.name}`)) {
+      list.insertAdjacentHTML('beforeend', `
+        <div class="peer-item" id="pcard-${p.name}">
+          <div class="peer-item-left">
+            <div class="peer-status-dot offline" id="dot-${p.name}"></div>
+            <div>
+              <div class="peer-item-name">${esc(p.name)}</div>
+              <div class="peer-item-addr">127.0.0.1 · TCP :${p.tcp_port} · UI :${p.flask_port}</div>
+            </div>
+          </div>
+          <div class="peer-item-btns">
+            <span class="badge badge-grey" id="status-${p.name}" style="font-size:9px">CHECKING…</span>
+            <button class="btn btn-outline btn-sm" onclick="browsePeer('${p.name}')">Browse</button>
+          </div>
+        </div>
+      `);
+    }
+  });
+
+  Array.from(list.children).forEach(child => {
+    const peerName = child.id.replace('pcard-', '');
+    if (peerName === selectedPeer) {
+      child.classList.add('selected');
+    } else {
+      child.classList.remove('selected');
+    }
+  });
+}
+
+async function pingAllPeers() {
+  const peers = await api('/api/peers');
+  for (const p of peers) {
+    pingPeer(p.name);
+  }
+}
+
+async function pingPeer(name) {
+  const dot    = document.getElementById(`dot-${name}`);
+  const status = document.getElementById(`status-${name}`);
+  if (!dot || !status) return;
+
+  const d = await api(`/api/peers/${name}/ping`);
+  if (d.online) {
+    dot.className    = 'peer-status-dot online';
+    status.textContent = 'ONLINE';
+    status.className = 'badge badge-green';
+  } else {
+    dot.className    = 'peer-status-dot offline';
+    status.textContent = 'OFFLINE';
+    status.className = 'badge badge-grey';
+  }
+}
+
+// ── Peer file browser ─────────────────────────────────────────────────────────
+async function browsePeer(name) {
+  selectedPeer = name;
+  await loadPeers();   // refresh to highlight selection
+
+  document.getElementById('browser-peer').textContent = name;
+  document.getElementById('refresh-btn').style.display = '';
+
+  const content = document.getElementById('browser-content');
+  content.innerHTML = `<div class="empty"><span class="spin"></span><br><br>Loading files…</div>`;
+
+  const files = await api(`/api/peers/${name}/files`);
+
+  if (!files || files.error) {
+    content.innerHTML = `<div class="empty">
+      <div class="empty-icon">⚠️</div>
+      <div>Could not connect to ${name}.<br>Make sure it is running.</div>
+    </div>`;
+    return;
+  }
+  if (!files.length) {
+    content.innerHTML = `<div class="empty">
+      <div class="empty-icon">📭</div>
+      <div>${name} has no files in shared_files/</div>
+    </div>`;
+    return;
+  }
+
+  content.innerHTML = `
+    <div class="file-list">
+      ${files.map(f => `
+        <div class="file-item">
+          <div class="file-item-left">
+            <div class="file-name" title="${esc(f.name)}">📄 ${esc(f.name)}</div>
+            <div class="file-size">${fmtSize(f.size)}</div>
+          </div>
+          <button class="btn btn-success btn-sm" onclick="downloadFile('${esc(name)}','${esc(f.name)}')">
+            ↓ Download
+          </button>
+        </div>
+      `).join('')}
+    </div>`;
+}
+
+function refreshBrowser() {
+  if (selectedPeer) browsePeer(selectedPeer);
+}
+
+// ── Download ──────────────────────────────────────────────────────────────────
+
+async function downloadFile(peerName, filename) {
+  const d = await api('/api/transfer/request', 'POST', { peer_name: peerName, filename: filename });
+
+  if (!d.success) {
+    toast('error', 'Transfer Failed', d.error || 'Unknown error');
+    return;
+  }
+
+  const toastId = `toast-${d.job_id}`;
+  const el = document.createElement('div');
+  el.className = `toast info`;
+  el.id = toastId;
+  el.style.display = 'block'; 
+  el.innerHTML = `
+    <div style="font-weight:600; margin-bottom:4px; color:var(--text)">⬇️ ${esc(filename)}</div>
+    <div style="color:var(--text-2)">Downloading...</div>
+    <div class="progress-wrap"><div class="progress-fill" id="dl-fill-${d.job_id}"></div></div>
+    <div class="speed-text"><span id="dl-pct-${d.job_id}">0%</span><span id="dl-spd-${d.job_id}">...</span></div>
+  `;
+  document.getElementById('toasts').appendChild(el);
+
+  pollJob(d.job_id, filename, toastId);
+}
+
+function pollJob(jobId, filename, toastId) {
+  const iv = setInterval(async () => {
+    const job = await api(`/api/transfer/status/${jobId}`);
+    
+    if (job.status === 'running') {
+      const pct = job.progress || 0;
+      const fillEl = document.getElementById(`dl-fill-${jobId}`);
+      const pctEl = document.getElementById(`dl-pct-${jobId}`);
+      const spdEl = document.getElementById(`dl-spd-${jobId}`);
+      if (fillEl) fillEl.style.width = `${pct}%`;
+      if (pctEl) pctEl.textContent = `${pct}%`;
+      if (spdEl && job.speed) spdEl.textContent = `${fmtSize(job.speed)}/s`;
+      return; 
+    }
+
+    clearInterval(iv);
+    document.getElementById(toastId)?.remove();
+
+    if (job.status === 'success') {
+      const hashMsg = job.verified ? 'SHA-256 verified ✓' : '⚠ SHA-256 mismatch!';
+      toast(job.verified ? 'success' : 'error', `Download Complete`, `${filename}\n${hashMsg}`);
+    } else {
+      toast('error', 'Download Failed', job.message || 'Unknown error');
+    }
+
+    await loadMyFiles();
+    await loadLog();
+  }, 1000);
+}
+   
+
+// ── My files ──────────────────────────────────────────────────────────────────
+async function loadMyFiles() {
+  const [shared, received] = await Promise.all([
+    api('/api/files/shared'),
+    api('/api/files/received'),
+  ]);
+
+  const total = (shared?.length || 0) + (received?.length || 0);
+  document.getElementById('myfiles-count').textContent = `${total} File${total !== 1 ? 's' : ''}`;
+
+  // Shared tab
+  document.getElementById('tab-shared').innerHTML =
+    shared?.length
+      ? `<div class="scroll">${shared.map(f => `
+          <div class="file-item">
+            <div class="file-item-left">
+              <div class="file-name">📄 ${esc(f.name)}</div>
+              <div class="file-size">${fmtSize(f.size)}</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="badge badge-blue file-tag">SHARED</span>
+              <button class="btn btn-danger btn-sm" onclick="deleteMyFile('shared', '${esc(f.name)}')">Delete</button>
+            </div>
+          </div>`).join('')}</div>`
+      : `<div class="empty"><div class="empty-icon">📭</div><div>No files in shared_files/ yet.<br>Upload one below.</div></div>`;
+
+  // Received tab
+  document.getElementById('tab-received').innerHTML =
+    received?.length
+      ? `<div class="scroll">${received.map(f => `
+          <div class="file-item">
+            <div class="file-item-left">
+              <div class="file-name">📄 ${esc(f.name)}</div>
+              <div class="file-size">${fmtSize(f.size)}</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="badge badge-green file-tag">RECEIVED</span>
+              <button class="btn btn-danger btn-sm" onclick="deleteMyFile('received', '${esc(f.name)}')">Delete</button>
+            </div>
+          </div>`).join('')}</div>`
+      : `<div class="empty"><div class="empty-icon">📬</div><div>No received files yet.</div></div>`;
+}
+
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-shared').style.display   = tab === 'shared'   ? '' : 'none';
+  document.getElementById('tab-received').style.display = tab === 'received' ? '' : 'none';
+}
+
+// ── Delete File ───────────────────────────────────────────────────────────────
+async function deleteMyFile(folder, filename) {
+  if (!confirm(`Are you sure you want to delete ${filename}?\nThis will stop sharing it with the swarm.`)) return;
+
+  const res = await api('/api/files/delete', 'POST', { folder, filename });
+  
+  if (res && res.success) {
+    toast('success', 'File Deleted', `${filename} removed from ${folder}_files`);
+    await loadMyFiles(); // Instantly refresh the UI
+  } else {
+    toast('error', 'Delete Failed', res?.error || 'Could not delete file');
+  }
+}
+
+// ── Upload ────────────────────────────────────────────────────────────────────
+async function handleUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const statusEl = document.getElementById('upload-status');
+  statusEl.innerHTML = `
+    <div style="color:var(--blue); margin-bottom:4px">Preparing upload for ${esc(file.name)}...</div>
+    <div class="progress-wrap"><div class="progress-fill" id="up-fill"></div></div>
+    <div class="speed-text"><span id="up-pct">0%</span><span id="up-spd">Calculating...</span></div>
+  `;
+
+  const CHUNK_SIZE = 5 * 1024 * 1024; 
+  const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+  let uploadFailed = false;
+  
+  const startTime = Date.now();
+  let bytesUploaded = 0;
+
+  for (let i = 0; i < totalChunks; i++) {
+    const start = i * CHUNK_SIZE;
+    const end = Math.min(start + CHUNK_SIZE, file.size);
+    const chunk = file.slice(start, end);
+
+    const fd = new FormData();
+    fd.append('file', chunk);
+    fd.append('filename', file.name);
+    fd.append('chunk_index', i);
+    fd.append('total_chunks', totalChunks);
+
+    try {
+      const response = await fetch('/api/files/upload', { method: 'POST', body: fd });
+      const data = await response.json();
+      
+      if (!data.success) {
+        uploadFailed = true;
+        statusEl.innerHTML = `<div style="color:var(--red)">✗ Upload failed on chunk ${i + 1}: ${data.error}</div>`;
+        break;
+      }
+
+      // Update Visuals & Speed
+      bytesUploaded += chunk.size;
+      const elapsedSecs = (Date.now() - startTime) / 1000;
+      const speed = elapsedSecs > 0 ? bytesUploaded / elapsedSecs : 0;
+      const percent = Math.round((bytesUploaded / file.size) * 100);
+
+      document.getElementById('up-fill').style.width = `${percent}%`;
+      document.getElementById('up-pct').textContent = `${percent}%`;
+      document.getElementById('up-spd').textContent = `${fmtSize(speed)}/s`;
+
+    } catch (error) {
+      uploadFailed = true;
+      statusEl.innerHTML = `<div style="color:var(--red)">✗ Network error during upload</div>`;
+      break;
+    }
+  }
+
+  if (!uploadFailed) {
+    statusEl.innerHTML = `<div style="color:var(--green)">✓ ${esc(file.name)} added to network</div>`;
+    toast('success', 'File Shared', `${file.name} is now available`);
+    await loadMyFiles();
+  }
+  input.value = ''; 
+}
+
+
+// Drag & drop
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('drag');
+  const inp = document.getElementById('file-input');
+  const dt = new DataTransfer();
+  
+  dt.items.add(e.dataTransfer.files[0]);
+  inp.files = dt.files;
+  handleUpload(inp);
+});
+
+// ── Transfer log ──────────────────────────────────────────────────────────────
+async function loadLog() {
+  const log  = await api('/api/transfer/log');
+  const body = document.getElementById('log-body');
+
+  if (!log?.length) {
+    body.innerHTML = `<tr><td colspan="6"><div class="empty">No transfers yet.</div></td></tr>`;
+    return;
+  }
+
+  const typeColor = { sent: 'var(--blue)', received: 'var(--green)' };
+
+  body.innerHTML = log.map(e => {
+    const col    = typeColor[e.type] || 'var(--text-2)';
+    const verHtml = e.verified === true
+      ? `<span class="log-verify ok">✓ OK</span>`
+      : e.verified === false
+        ? `<span class="log-verify fail">✗ FAIL</span>`
+        : `<span style="color:var(--text-3)">—</span>`;
+    return `<tr>
+      <td class="log-type-cell" style="color:${col}">${e.type.toUpperCase()}</td>
+      <td style="font-family:var(--mono);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(e.file)}">${esc(e.file)}</td>
+      <td style="color:var(--text-2);font-family:var(--mono)">${e.peer}</td>
+      <td style="color:var(--text-2)">${fmtSize(e.size || 0)}</td>
+      <td>${verHtml}</td>
+      <td style="color:var(--text-3)">${e.time}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Global Search ─────────────────────────────────────────────────────────────
+async function searchNetwork() {
+  const query = document.getElementById('search-input').value.trim();
+  if (!query) return;
+
+  document.getElementById('browser-peer').innerHTML = `Search Results for "<b>${esc(query)}</b>"`;
+  document.getElementById('refresh-btn').style.display = 'none';
+  selectedPeer = null;
+
+  const content = document.getElementById('browser-content');
+  content.innerHTML = `<div class="empty"><span class="spin"></span><br><br>Searching Swarm...</div>`;
+
+  const files = await api(`/api/search?q=${encodeURIComponent(query)}`);
+
+  if (!files || !files.length) {
+    content.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><div>No files found matching "${esc(query)}"</div></div>`;
+    return;
+  }
+
+  content.innerHTML = `
+    <div class="scroll" style="max-height: 280px; padding-right: 4px;">
+      ${files.map(f => `
+        <div class="file-item">
+          <div class="file-item-left">
+            <div class="file-name" title="${esc(f.name)}">📄 ${esc(f.name)}</div>
+            <div class="file-size">${fmtSize(f.size)} <span class="badge badge-grey file-tag" style="margin-left:6px">@${esc(f.peer)}</span></div>
+          </div>
+          <button class="btn btn-success btn-sm" onclick="downloadFile('${esc(f.peer)}','${esc(f.name)}')">↓ Download</button>
+        </div>
+      `).join('')}
+    </div>`;
+}
+
+async function api(url, method = 'GET', body = null) {
+  try {
+    const opts = { method };
+    if (body) {
+      opts.headers = { 'Content-Type': 'application/json' };
+      opts.body    = JSON.stringify(body);
+    }
+    const r = await fetch(url, opts);
+    return await r.json();
+  } catch {
+    return null;
+  }
+}
+
+function fmtSize(bytes) {
+  if (bytes < 1024)        return `${bytes} B`;
+  if (bytes < 1048576)     return `${(bytes / 1024).toFixed(1)} KB`;
+  return                          `${(bytes / 1048576).toFixed(2)} MB`;
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(type, title, msg) {
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  const el    = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `
+    <div class="toast-icon">${icons[type] || 'ℹ️'}</div>
+    <div class="toast-body">
+      <div class="toast-title">${esc(title)}</div>
+      <div class="toast-msg">${esc(msg)}</div>
+    </div>`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; }, 4000);
+  setTimeout(() => el.remove(), 4400);
+}
+</script>
+</body>
+</html>
