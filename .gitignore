@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Runtime peer data (created at startup, not part of source)
+peer_*/
+*.part
+
+# PyInstaller build artifacts
+build/
+dist/
+*.spec
+
+# OS / editor cruft
+.DS_Store
+.vscode/
+.idea/
